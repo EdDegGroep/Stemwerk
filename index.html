@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Deg Text-to-Speech</title>
+  <style>
+    :root {
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: #17202a;
+      background: #f4f6f8;
+    }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+    .card {
+      width: min(760px, 100%);
+      box-sizing: border-box;
+      background: #fff;
+      border-radius: 18px;
+      padding: 28px;
+      box-shadow: 0 18px 60px rgba(0,0,0,.08);
+    }
+    h1 { margin: 0 0 8px; }
+    p { color: #667085; }
+    label {
+      display: block;
+      margin: 18px 0 8px;
+      font-weight: 700;
+    }
+    textarea, select {
+      width: 100%;
+      box-sizing: border-box;
+      border: 1px solid #d0d5dd;
+      border-radius: 10px;
+      padding: 12px;
+      font: inherit;
+      background: #fff;
+    }
+    textarea {
+      min-height: 190px;
+      resize: vertical;
+    }
+    button {
+      margin-top: 20px;
+      border: 0;
+      border-radius: 10px;
+      padding: 12px 18px;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    button:disabled { opacity: .55; cursor: wait; }
+    audio { width: 100%; margin-top: 20px; }
+    #status { margin-top: 14px; min-height: 1.4em; }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <h1>Deg Text-to-Speech</h1>
+    <p>GitHub Pages → Google Cloud Run → Google Text-to-Speech</p>
+
+    <label for="text">Tekst</label>
+    <textarea id="text">Welkom bij Deg. Thuis in projectbeheersing.</textarea>
+
+    <label for="voice">Stem</label>
+    <select id="voice">
+      <option value="nl-NL-Chirp3-HD-Puck">Nederlands — Puck</option>
+      <option value="nl-NL-Chirp3-HD-Aoede">Nederlands — Aoede</option>
+    </select>
+
+    <button id="speak">▶ Voorlezen</button>
+    <div id="status" aria-live="polite"></div>
+    <audio id="audio" controls></audio>
+  </main>
+
+  <script>
+    // Vervang dit na deployment door jouw echte Cloud Run URL.
+    const CLOUD_RUN_URL = "https://JOUW-SERVICE-URL.run.app";
+
+    const speakButton = document.getElementById("speak");
+    const textEl = document.getElementById("text");
+    const voiceEl = document.getElementById("voice");
+    const audioEl = document.getElementById("audio");
+    const statusEl = document.getElementById("status");
+
+    speakButton.addEventListener("click", async () => {
+      const text = textEl.value.trim();
+
+      if (!text) {
+        statusEl.textContent = "Voer eerst tekst in.";
+        return;
+      }
+
+      speakButton.disabled = true;
+      statusEl.textContent = "Audio wordt gemaakt…";
+
+      try {
+        const response = await fetch(`${CLOUD_RUN_URL}/tts`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            text,
+            voice: voiceEl.value
+          })
+        });
+
+        if (!response.ok) {
+          const message = await response.text();
+          throw new Error(message || `HTTP ${response.status}`);
+        }
+
+        const blob = await response.blob();
+        const previous = audioEl.src;
+
+        audioEl.src = URL.createObjectURL(blob);
+        if (previous.startsWith("blob:")) URL.revokeObjectURL(previous);
+
+        await audioEl.play();
+        statusEl.textContent = "Klaar.";
+      } catch (error) {
+        console.error(error);
+        statusEl.textContent = `Fout: ${error.message}`;
+      } finally {
+        speakButton.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
