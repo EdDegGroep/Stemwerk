@@ -3,38 +3,38 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Deg Text-to-Speech</title>
+  <title>Stemwerk</title>
   <style>
     :root {
       font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       color: #17202a;
       background: #f4f6f8;
     }
+    * { box-sizing: border-box; }
     body {
       margin: 0;
       min-height: 100vh;
-      display: grid;
-      place-items: center;
       padding: 24px;
     }
     .card {
-      width: min(760px, 100%);
-      box-sizing: border-box;
+      width: min(900px, 100%);
+      margin: 0 auto;
       background: #fff;
       border-radius: 18px;
       padding: 28px;
       box-shadow: 0 18px 60px rgba(0,0,0,.08);
     }
     h1 { margin: 0 0 8px; }
-    p { color: #667085; }
+    p { color: #667085; margin-top: 0; }
     label {
       display: block;
       margin: 18px 0 8px;
       font-weight: 700;
     }
-    textarea, select {
+    textarea, select, input[type="text"], input[type="range"] {
       width: 100%;
-      box-sizing: border-box;
+    }
+    textarea, select, input[type="text"] {
       border: 1px solid #d0d5dd;
       border-radius: 10px;
       padding: 12px;
@@ -42,11 +42,45 @@
       background: #fff;
     }
     textarea {
-      min-height: 190px;
+      min-height: 240px;
       resize: vertical;
     }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      gap: 18px;
+    }
+    .range-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 14px;
+    }
+    .range-value {
+      min-width: 58px;
+      text-align: right;
+      font-weight: 700;
+    }
+    .meta {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+      color: #667085;
+      font-size: .92rem;
+    }
+    .pill {
+      background: #f2f4f7;
+      border-radius: 999px;
+      padding: 6px 10px;
+    }
+    .buttons {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 22px;
+    }
     button {
-      margin-top: 20px;
       border: 0;
       border-radius: 10px;
       padding: 12px 18px;
@@ -54,39 +88,266 @@
       font-weight: 700;
       cursor: pointer;
     }
-    button:disabled { opacity: .55; cursor: wait; }
-    audio { width: 100%; margin-top: 20px; }
-    #status { margin-top: 14px; min-height: 1.4em; }
+    button:disabled { opacity: .5; cursor: not-allowed; }
+    audio { width: 100%; margin-top: 22px; }
+    #status {
+      margin-top: 14px;
+      min-height: 1.5em;
+    }
+    .hint {
+      margin-top: 6px;
+      font-size: .88rem;
+      color: #667085;
+    }
+    .chunks {
+      margin-top: 18px;
+      padding: 14px;
+      background: #f8fafc;
+      border-radius: 12px;
+      display: none;
+    }
+    .chunks strong { display: block; margin-bottom: 8px; }
+    @media (max-width: 680px) {
+      .grid { grid-template-columns: 1fr; }
+      .card { padding: 20px; }
+    }
   </style>
 </head>
+
 <body>
   <main class="card">
-    <h1>Deg Text-to-Speech</h1>
-    <p>GitHub Pages → Google Cloud Run → Google Text-to-Speech</p>
+    <h1>Stemwerk</h1>
+    <p>Tekst omzetten naar natuurlijke Nederlandse spraak met Google Text-to-Speech.</p>
 
     <label for="text">Tekst</label>
-    <textarea id="text">Welkom bij Deg. Thuis in projectbeheersing.</textarea>
+    <textarea id="text">Welkom bij Deg. Thuis in projectbeheersing.
 
-    <label for="voice">Stem</label>
-    <select id="voice">
-      <option value="nl-NL-Chirp3-HD-Puck">Nederlands — Puck</option>
-      <option value="nl-NL-Chirp3-HD-Aoede">Nederlands — Aoede</option>
-    </select>
+Met Stemwerk kun je tekst omzetten naar natuurlijke spraak. Je kunt de stem, leessnelheid en pauzes instellen en de audio daarna opslaan als MP3.</textarea>
 
-    <button id="speak">▶ Voorlezen</button>
+    <div class="meta">
+      <span class="pill"><span id="charCount">0</span> tekens</span>
+      <span class="pill"><span id="byteCount">0</span> bytes</span>
+      <span class="pill">± <span id="duration">0:00</span> spreektijd</span>
+      <span class="pill"><span id="chunkCount">1</span> fragment(en)</span>
+    </div>
+
+    <div class="grid">
+      <div>
+        <label for="voice">Stem</label>
+        <select id="voice">
+          <option value="nl-NL-Chirp3-HD-Puck">Puck</option>
+          <option value="nl-NL-Chirp3-HD-Aoede">Aoede</option>
+          <option value="nl-NL-Chirp3-HD-Charon">Charon</option>
+          <option value="nl-NL-Chirp3-HD-Kore">Kore</option>
+          <option value="nl-NL-Chirp3-HD-Fenrir">Fenrir</option>
+          <option value="nl-NL-Chirp3-HD-Leda">Leda</option>
+        </select>
+      </div>
+
+      <div>
+        <label for="pause">Pauzes tussen alinea's</label>
+        <select id="pause">
+          <option value="none">Natuurlijk</option>
+          <option value="short">Kort</option>
+          <option value="normal">Normaal</option>
+          <option value="long">Lang</option>
+        </select>
+        <div class="hint">Extra pauzes worden alleen tussen alinea's toegevoegd.</div>
+      </div>
+    </div>
+
+    <label for="rate">Leessnelheid</label>
+    <div class="range-row">
+      <input id="rate" type="range" min="0.5" max="1.5" step="0.05" value="1">
+      <span class="range-value" id="rateValue">1.00×</span>
+    </div>
+    <div class="hint">Google Chirp 3 HD ondersteunt 0,25× tot 2,0×. Voor prettig luisteren is 0,8×–1,2× meestal het nuttigst.</div>
+
+    <label for="filename">Naam van MP3-bestand</label>
+    <input id="filename" type="text" value="stemwerk">
+
+    <div class="buttons">
+      <button id="speak">▶ Genereren & voorlezen</button>
+      <button id="download" disabled>⬇ Download MP3</button>
+      <button id="split">✂ Toon tekstopdeling</button>
+    </div>
+
     <div id="status" aria-live="polite"></div>
+
+    <div class="chunks" id="chunks">
+      <strong>Automatische opdeling</strong>
+      <div id="chunkDetails"></div>
+    </div>
+
     <audio id="audio" controls></audio>
   </main>
 
   <script>
-    // Vervang dit na deployment door jouw echte Cloud Run URL.
-    const CLOUD_RUN_URL = "https://stemwerk-574603882200.europe-west4.run.app";
+    const CLOUD_RUN_URL =
+      "https://stemwerk-574603882200.europe-west4.run.app";
 
-    const speakButton = document.getElementById("speak");
+    // Houd bewust ruimte onder Google's limiet van 5000 bytes per request.
+    const TARGET_CHUNK_BYTES = 3800;
+
     const textEl = document.getElementById("text");
     const voiceEl = document.getElementById("voice");
+    const pauseEl = document.getElementById("pause");
+    const rateEl = document.getElementById("rate");
+    const rateValueEl = document.getElementById("rateValue");
+    const filenameEl = document.getElementById("filename");
+    const speakButton = document.getElementById("speak");
+    const downloadButton = document.getElementById("download");
+    const splitButton = document.getElementById("split");
     const audioEl = document.getElementById("audio");
     const statusEl = document.getElementById("status");
+    const charCountEl = document.getElementById("charCount");
+    const byteCountEl = document.getElementById("byteCount");
+    const durationEl = document.getElementById("duration");
+    const chunkCountEl = document.getElementById("chunkCount");
+    const chunksEl = document.getElementById("chunks");
+    const chunkDetailsEl = document.getElementById("chunkDetails");
+
+    let currentAudioBlob = null;
+    let currentAudioUrl = null;
+
+    const utf8Bytes = value => new TextEncoder().encode(value).length;
+
+    function formatDuration(seconds) {
+      seconds = Math.max(0, Math.round(seconds));
+      const m = Math.floor(seconds / 60);
+      const s = seconds % 60;
+      return `${m}:${String(s).padStart(2, "0")}`;
+    }
+
+    function splitText(text, maxBytes = TARGET_CHUNK_BYTES) {
+      const clean = text.trim();
+      if (!clean) return [];
+      if (utf8Bytes(clean) <= maxBytes) return [clean];
+
+      // Eerst alinea's, daarna zinnen, daarna woorden.
+      const paragraphs = clean.split(/\n\s*\n/);
+      const chunks = [];
+      let current = "";
+
+      function pushPiece(piece) {
+        piece = piece.trim();
+        if (!piece) return;
+
+        const candidate = current ? `${current}\n\n${piece}` : piece;
+
+        if (utf8Bytes(candidate) <= maxBytes) {
+          current = candidate;
+          return;
+        }
+
+        if (current) {
+          chunks.push(current);
+          current = "";
+        }
+
+        if (utf8Bytes(piece) <= maxBytes) {
+          current = piece;
+          return;
+        }
+
+        const sentences = piece.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [piece];
+        for (const sentence of sentences) {
+          const s = sentence.trim();
+          const sentenceCandidate = current ? `${current} ${s}` : s;
+
+          if (utf8Bytes(sentenceCandidate) <= maxBytes) {
+            current = sentenceCandidate;
+            continue;
+          }
+
+          if (current) {
+            chunks.push(current);
+            current = "";
+          }
+
+          if (utf8Bytes(s) <= maxBytes) {
+            current = s;
+            continue;
+          }
+
+          const words = s.split(/\s+/);
+          for (const word of words) {
+            const wordCandidate = current ? `${current} ${word}` : word;
+            if (utf8Bytes(wordCandidate) <= maxBytes) {
+              current = wordCandidate;
+            } else {
+              if (current) chunks.push(current);
+              current = word;
+            }
+          }
+        }
+      }
+
+      paragraphs.forEach(pushPiece);
+      if (current) chunks.push(current);
+      return chunks;
+    }
+
+    function estimateSeconds(text) {
+      // Nederlandse vertelstem: ongeveer 150 woorden/min bij 1.0x.
+      const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+      const rate = Number(rateEl.value) || 1;
+      return (words / (150 * rate)) * 60;
+    }
+
+    function updateStats() {
+      const text = textEl.value;
+      const chunks = splitText(text);
+
+      charCountEl.textContent = text.length;
+      byteCountEl.textContent = utf8Bytes(text);
+      chunkCountEl.textContent = Math.max(1, chunks.length);
+      durationEl.textContent = formatDuration(estimateSeconds(text));
+      rateValueEl.textContent = `${Number(rateEl.value).toFixed(2)}×`;
+    }
+
+    function renderChunks() {
+      const chunks = splitText(textEl.value);
+      if (!chunks.length) {
+        chunkDetailsEl.textContent = "Geen tekst.";
+        return;
+      }
+
+      chunkDetailsEl.innerHTML = chunks.map((chunk, i) =>
+        `<div>Fragment ${i + 1}: ${chunk.length} tekens / ${utf8Bytes(chunk)} bytes</div>`
+      ).join("");
+    }
+
+    textEl.addEventListener("input", updateStats);
+    rateEl.addEventListener("input", updateStats);
+
+    splitButton.addEventListener("click", () => {
+      renderChunks();
+      chunksEl.style.display =
+        chunksEl.style.display === "block" ? "none" : "block";
+    });
+
+    updateStats();
+
+    async function synthesizeChunk(text) {
+      const response = await fetch(`${CLOUD_RUN_URL}/tts`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          text,
+          voice: voiceEl.value,
+          speakingRate: Number(rateEl.value),
+          pause: pauseEl.value
+        })
+      });
+
+      if (!response.ok) {
+        const message = await response.text();
+        throw new Error(message || `HTTP ${response.status}`);
+      }
+
+      return response.arrayBuffer();
+    }
 
     speakButton.addEventListener("click", async () => {
       const text = textEl.value.trim();
@@ -96,38 +357,75 @@
         return;
       }
 
+      const chunks = splitText(text);
       speakButton.disabled = true;
-      statusEl.textContent = "Audio wordt gemaakt…";
+      downloadButton.disabled = true;
+      currentAudioBlob = null;
+      statusEl.textContent =
+        chunks.length === 1
+          ? "Audio wordt gemaakt…"
+          : `Lange tekst: ${chunks.length} fragmenten worden gemaakt…`;
 
       try {
-        const response = await fetch(`${CLOUD_RUN_URL}/tts`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            text,
-            voice: voiceEl.value
-          })
-        });
+        const audioParts = [];
 
-        if (!response.ok) {
-          const message = await response.text();
-          throw new Error(message || `HTTP ${response.status}`);
+        for (let i = 0; i < chunks.length; i++) {
+          statusEl.textContent =
+            `Audio maken: fragment ${i + 1} van ${chunks.length}…`;
+          audioParts.push(await synthesizeChunk(chunks[i]));
         }
 
-        const blob = await response.blob();
-        const previous = audioEl.src;
+        // MP3 bestaat uit opeenvolgende frames; voor deze toepassing worden
+        // de gegenereerde MP3-segmenten achter elkaar aangeboden als één bestand.
+        currentAudioBlob = new Blob(audioParts, { type: "audio/mpeg" });
 
-        audioEl.src = URL.createObjectURL(blob);
-        if (previous.startsWith("blob:")) URL.revokeObjectURL(previous);
+        if (currentAudioUrl) URL.revokeObjectURL(currentAudioUrl);
+        currentAudioUrl = URL.createObjectURL(currentAudioBlob);
+
+        audioEl.src = currentAudioUrl;
+        downloadButton.disabled = false;
+        statusEl.textContent =
+          `Klaar — ${chunks.length} fragment${chunks.length === 1 ? "" : "en"}.`;
 
         await audioEl.play();
-        statusEl.textContent = "Klaar.";
       } catch (error) {
         console.error(error);
-        statusEl.textContent = `Fout: ${error.message}`;
+        statusEl.textContent = "Fout: " + error.message;
       } finally {
         speakButton.disabled = false;
       }
+    });
+
+    downloadButton.addEventListener("click", () => {
+      if (!currentAudioBlob) return;
+
+      let filename = filenameEl.value.trim() || "stemwerk";
+      filename = filename
+        .replace(/\.mp3$/i, "")
+        .replace(/[\/\\:*?"<>|]/g, "-");
+
+      const date = new Date();
+      const dateString =
+        String(date.getDate()).padStart(2, "0") + "-" +
+        String(date.getMonth() + 1).padStart(2, "0") + "-" +
+        date.getFullYear();
+
+      const voiceName = voiceEl.options[voiceEl.selectedIndex].text;
+      const url = URL.createObjectURL(currentAudioBlob);
+      const link = document.createElement("a");
+
+      link.href = url;
+      link.download = `${filename}_${voiceName}_${dateString}.mp3`;
+
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    });
+
+    window.addEventListener("beforeunload", () => {
+      if (currentAudioUrl) URL.revokeObjectURL(currentAudioUrl);
     });
   </script>
 </body>
