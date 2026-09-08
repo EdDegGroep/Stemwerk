@@ -1,432 +1,704 @@
 <!doctype html>
 <html lang="nl">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Stemwerk</title>
-  <style>
-    :root {
-      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      color: #17202a;
-      background: #f4f6f8;
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      min-height: 100vh;
-      padding: 24px;
-    }
-    .card {
-      width: min(900px, 100%);
-      margin: 0 auto;
-      background: #fff;
-      border-radius: 18px;
-      padding: 28px;
-      box-shadow: 0 18px 60px rgba(0,0,0,.08);
-    }
-    h1 { margin: 0 0 8px; }
-    p { color: #667085; margin-top: 0; }
-    label {
-      display: block;
-      margin: 18px 0 8px;
-      font-weight: 700;
-    }
-    textarea, select, input[type="text"], input[type="range"] {
-      width: 100%;
-    }
-    textarea, select, input[type="text"] {
-      border: 1px solid #d0d5dd;
-      border-radius: 10px;
-      padding: 12px;
-      font: inherit;
-      background: #fff;
-    }
-    textarea {
-      min-height: 240px;
-      resize: vertical;
-    }
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0,1fr));
-      gap: 18px;
-    }
-    .range-row {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      align-items: center;
-      gap: 14px;
-    }
-    .range-value {
-      min-width: 58px;
-      text-align: right;
-      font-weight: 700;
-    }
-    .meta {
-      display: flex;
-      gap: 14px;
-      flex-wrap: wrap;
-      margin-top: 8px;
-      color: #667085;
-      font-size: .92rem;
-    }
-    .pill {
-      background: #f2f4f7;
-      border-radius: 999px;
-      padding: 6px 10px;
-    }
-    .buttons {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-      margin-top: 22px;
-    }
-    button {
-      border: 0;
-      border-radius: 10px;
-      padding: 12px 18px;
-      font: inherit;
-      font-weight: 700;
-      cursor: pointer;
-    }
-    button:disabled { opacity: .5; cursor: not-allowed; }
-    audio { width: 100%; margin-top: 22px; }
-    #status {
-      margin-top: 14px;
-      min-height: 1.5em;
-    }
-    .hint {
-      margin-top: 6px;
-      font-size: .88rem;
-      color: #667085;
-    }
-    .chunks {
-      margin-top: 18px;
-      padding: 14px;
-      background: #f8fafc;
-      border-radius: 12px;
-      display: none;
-    }
-    .chunks strong { display: block; margin-bottom: 8px; }
-    @media (max-width: 680px) {
-      .grid { grid-template-columns: 1fr; }
-      .card { padding: 20px; }
-    }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stemwerk</title>
+<style>
+:root{
+  --deg-paper:#FBF8EF; --deg-basis:#F3EEDB; --deg-zand:#E6DFC7;
+  --deg-lijn:#D8CFB5; --deg-lijn-sterk:#AD9C8F;
+  --deg-inkt-zwak:#8E796E; --deg-inkt-sub:#664A43; --deg-inkt:#2A0402;
+  --sig-kritiek:#A8321C; --sig-aandacht:#A97400; --sig-goed:#2C7A55; --sig-info:#0B6E8F;
+  --sig-kritiek-vlak:rgba(168,50,28,.12);
+  --sig-aandacht-vlak:rgba(169,116,0,.12);
+  --sig-goed-vlak:rgba(44,122,85,.12);
+  --sig-info-vlak:rgba(11,110,143,.12);
+  --accent:#EF8232;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--deg-basis); color:var(--deg-inkt);
+  font-family:"FKT Gnarly","Poppins","Inter",system-ui,-apple-system,sans-serif;
+  font-size:14px; line-height:1.45;
+}
+:focus-visible{outline:2px solid var(--deg-inkt); outline-offset:2px;}
+
+.deg-topbar{
+  height:56px; background:var(--deg-inkt); color:var(--deg-basis);
+  display:flex; align-items:center; gap:20px; padding:0 20px;
+}
+.deg-topbar .logo{font-weight:900; font-size:19px; letter-spacing:.01em;}
+.deg-topbar .kruimel{font-size:12.5px; color:#CDBBAF;}
+.deg-topbar .rechts{margin-left:auto; font-size:12px; color:#CDBBAF;}
+.deg-streep{height:3px; background:var(--accent);}
+.deg-werkblad{max-width:1240px; margin:0 auto; padding:22px 20px 64px;}
+
+.paneel{
+  background:var(--deg-paper); border:1px solid var(--deg-lijn-sterk);
+  border-radius:10px; margin-bottom:18px;
+}
+.paneel>header{
+  display:flex; align-items:center; gap:12px;
+  padding:11px 16px; border-bottom:1px solid var(--deg-lijn);
+  font-weight:700; font-size:15px;
+}
+.paneel>header .acties{margin-left:auto; display:flex; gap:8px;}
+.paneel>.inhoud{padding:16px;}
+
+.raster{display:grid; gap:18px;}
+.raster.k2{grid-template-columns:repeat(2,minmax(0,1fr));}
+
+.eyebrow{
+  font-weight:700; font-size:11px; text-transform:uppercase;
+  letter-spacing:.08em; color:var(--deg-inkt-sub); margin:0 0 6px;
+}
+.sub{color:var(--deg-inkt-sub);}
+.num{font-variant-numeric:tabular-nums;}
+.code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:12.5px;}
+
+.veld{display:block; margin-bottom:14px;}
+.veld>span{display:block; font-weight:700; font-size:13px; margin-bottom:6px;}
+.veld .hint{font-weight:400; font-size:12.5px; color:var(--deg-inkt-sub); margin-top:5px;}
+textarea,select,input[type=text]{
+  width:100%; font:inherit; color:var(--deg-inkt);
+  background:var(--deg-paper); border:1px solid var(--deg-lijn-sterk);
+  border-radius:8px; padding:9px 11px;
+}
+textarea{min-height:260px; resize:vertical; line-height:1.55;}
+textarea#woordenboek{min-height:90px;}
+input[type=range]{width:100%; accent-color:var(--accent);}
+.range-row{display:grid; grid-template-columns:1fr auto; align-items:center; gap:14px;}
+.range-value{font-weight:700; min-width:56px; text-align:right;}
+
+.meta{display:flex; gap:8px; flex-wrap:wrap; margin-top:10px;}
+.pil{
+  display:inline-block; background:var(--deg-zand); border-radius:999px;
+  padding:4px 11px; font-size:12.5px; font-weight:700;
+}
+.pil.info{background:var(--sig-info-vlak); color:var(--sig-info);}
+.pil.aandacht{background:var(--sig-aandacht-vlak); color:var(--sig-aandacht);}
+.pil.goed{background:var(--sig-goed-vlak); color:var(--sig-goed);}
+.pil.kritiek{background:var(--sig-kritiek-vlak); color:var(--sig-kritiek);}
+
+.knoppen{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:18px;}
+.knop{
+  font:inherit; font-weight:700; cursor:pointer;
+  background:var(--deg-inkt); color:var(--deg-basis);
+  border:1px solid var(--deg-inkt); border-radius:8px; padding:10px 16px;
+}
+.knop.tweede{background:transparent; color:var(--deg-inkt);}
+.knop.stil{background:transparent; color:var(--deg-inkt-sub); border-color:var(--deg-lijn-sterk);}
+.knop[disabled]{opacity:.45; cursor:not-allowed;}
+
+.bevinding{
+  display:flex; gap:12px; padding:11px 14px; border-radius:8px;
+  background:var(--deg-zand); margin-bottom:12px; font-size:13px;
+}
+.bevinding .merk{width:3px; border-radius:2px; background:var(--deg-inkt-sub); flex:none;}
+.bevinding[data-status=aandacht]{background:var(--sig-aandacht-vlak);}
+.bevinding[data-status=aandacht] .merk{background:var(--sig-aandacht);}
+.bevinding[data-status=kritiek]{background:var(--sig-kritiek-vlak);}
+.bevinding[data-status=kritiek] .merk{background:var(--sig-kritiek);}
+.bevinding[data-status=info]{background:var(--sig-info-vlak);}
+.bevinding[data-status=info] .merk{background:var(--sig-info);}
+
+.tabelwrap{overflow-x:auto;}
+table.deg{width:100%; border-collapse:collapse; font-size:13px;}
+table.deg th,table.deg td{
+  padding:7px 10px; text-align:left; border-bottom:1px solid var(--deg-lijn);
+}
+table.deg th{background:var(--deg-zand); font-weight:700; white-space:nowrap;}
+table.deg td.r,table.deg th.r{text-align:right; font-variant-numeric:tabular-nums;}
+
+#status{min-height:1.5em; margin-bottom:14px; font-weight:700;}
+#status[data-soort=fout]{color:var(--sig-kritiek);}
+#status[data-soort=klaar]{color:var(--sig-goed);}
+audio{width:100%;}
+.verborgen{display:none !important;}
+
+@media (max-width:860px){
+  .raster.k2{grid-template-columns:1fr;}
+  .deg-werkblad{padding:16px 14px 48px;}
+  .deg-topbar .kruimel,.deg-topbar .rechts{display:none;}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none !important; animation:none !important;}}
+@media print{
+  .geen-print{display:none !important;}
+  body{background:#fff;}
+  .paneel{break-inside:avoid;}
+}
+</style>
 </head>
 
 <body>
-  <main class="card">
-    <h1>Stemwerk</h1>
-    <p>Tekst omzetten naar natuurlijke Nederlandse spraak met Google Text-to-Speech.</p>
 
-    <label for="text">Tekst</label>
-    <textarea id="text">Welkom bij Deg. Thuis in projectbeheersing.
+<div class="deg-topbar">
+  <span class="logo">DEG.</span>
+  <span class="kruimel">Stemwerk / tekst naar spraak / v3</span>
+  <span class="rechts">Chirp 3 HD &middot; nl-NL</span>
+</div>
+<div class="deg-streep"></div>
 
-Met Stemwerk kun je tekst omzetten naar natuurlijke spraak. Je kunt de stem, leessnelheid en pauzes instellen en de audio daarna opslaan als MP3.</textarea>
+<main class="deg-werkblad">
 
-    <div class="meta">
-      <span class="pill"><span id="charCount">0</span> tekens</span>
-      <span class="pill"><span id="byteCount">0</span> bytes</span>
-      <span class="pill">± <span id="duration">0:00</span> spreektijd</span>
-      <span class="pill"><span id="chunkCount">1</span> fragment(en)</span>
+  <section class="paneel">
+    <header>Tekst</header>
+    <div class="inhoud">
+      <label class="veld">
+        <span class="verborgen">Tekst</span>
+        <textarea id="tekst" aria-label="Tekst om voor te lezen">Welkom bij Deg. Thuis in projectbeheersing.
+
+Met Stemwerk zet je tekst om naar spraak. Zet [pause long] waar de stem even moet zwijgen.
+
+[knip 2500]
+
+Na een knip begint een nieuw fragment, met precies de opgegeven stilte ertussen.</textarea>
+      </label>
+      <div class="meta" id="meta"></div>
+      <p class="sub" style="margin:12px 0 0; font-size:12.5px;">
+        <strong>[pause]</strong>, <strong>[pause short]</strong> en <strong>[pause long]</strong> laten de stem zelf even zwijgen &mdash; de duur bepaalt het model.
+        <strong>[knip 2500]</strong> op een eigen regel breekt af en plakt er exact 2500&nbsp;milliseconde digitale stilte tussen.
+        Gebruik knippen voor stiltes die precies moeten kloppen.
+      </p>
     </div>
+  </section>
 
-    <div class="grid">
-      <div>
-        <label for="voice">Stem</label>
-        <select id="voice">
-          <option value="nl-NL-Chirp3-HD-Puck">Puck</option>
-          <option value="nl-NL-Chirp3-HD-Aoede">Aoede</option>
-          <option value="nl-NL-Chirp3-HD-Charon">Charon</option>
-          <option value="nl-NL-Chirp3-HD-Kore">Kore</option>
-          <option value="nl-NL-Chirp3-HD-Fenrir">Fenrir</option>
-          <option value="nl-NL-Chirp3-HD-Leda">Leda</option>
-        </select>
+  <div class="raster k2">
+    <section class="paneel">
+      <header>Stem</header>
+      <div class="inhoud">
+        <label class="veld">
+          <span>Stem</span>
+          <select id="stem"></select>
+        </label>
+
+        <label class="veld">
+          <span>Leessnelheid</span>
+          <div class="range-row">
+            <input id="tempo" type="range" min="0.5" max="1.5" step="0.01" value="0.92">
+            <span class="range-value num" id="tempoWaarde">0,92&times;</span>
+          </div>
+          <span class="hint">Chirp 3 accepteert 0,25&times; tot 2,0&times;. Voor een vertelstem werkt 0,88&times; tot 1,00&times; het prettigst. Toonhoogte ondersteunt Chirp 3 niet.</span>
+        </label>
+
+        <label class="veld">
+          <span>Pauzes tussen alinea's</span>
+          <select id="alineapauze">
+            <option value="none">Natuurlijk</option>
+            <option value="short">Kort</option>
+            <option value="normal">Normaal</option>
+            <option value="long">Lang</option>
+          </select>
+          <span class="hint">Staan er al eigen pauzetags in de tekst, dan blijft deze instelling buiten werking en is je script leidend.</span>
+        </label>
       </div>
+    </section>
 
-      <div>
-        <label for="pause">Pauzes tussen alinea's</label>
-        <select id="pause">
-          <option value="none">Natuurlijk</option>
-          <option value="short">Kort</option>
-          <option value="normal">Normaal</option>
-          <option value="long">Lang</option>
-        </select>
-        <div class="hint">Extra pauzes worden alleen tussen alinea's toegevoegd.</div>
+    <section class="paneel">
+      <header>Uitvoer</header>
+      <div class="inhoud">
+        <label class="veld">
+          <span>Formaat</span>
+          <select id="formaat">
+            <option value="WAV">WAV &mdash; exacte stiltes, groot bestand</option>
+            <option value="MP3">MP3 &mdash; compact, zonder exacte stiltes</option>
+          </select>
+          <span class="hint" id="formaatHint"></span>
+        </label>
+
+        <label class="veld">
+          <span>Bestandsnaam</span>
+          <input id="bestandsnaam" type="text" value="stemwerk">
+        </label>
+
+        <label class="veld">
+          <span>Uitspraakwoordenboek</span>
+          <textarea id="woordenboek" spellcheck="false" placeholder="Een regel per woord:&#10;Deg = dɛx"></textarea>
+          <span class="hint">Eén regel per woord, als <span class="code">woord = ipa</span>. Chirp 3 kent geen <span class="code">&lt;phoneme&gt;</span>; dit gaat als apart uitspraakveld mee. Laat leeg als niets verkeerd klinkt.</span>
+        </label>
+      </div>
+    </section>
+  </div>
+
+  <div class="knoppen geen-print">
+    <button class="knop" id="maak">Audio maken</button>
+    <button class="knop tweede" id="download" disabled>Downloaden</button>
+    <button class="knop stil" id="toonOpdeling">Opdeling tonen</button>
+  </div>
+
+  <div id="status" aria-live="polite"></div>
+
+  <section class="paneel verborgen" id="opdelingPaneel">
+    <header>Opdeling</header>
+    <div class="inhoud">
+      <div id="bevindingen"></div>
+      <div class="tabelwrap">
+        <table class="deg">
+          <thead>
+            <tr>
+              <th>#</th><th>Begin van het fragment</th>
+              <th class="r">Tekens</th><th class="r">Bytes</th><th class="r">Stilte erna</th>
+            </tr>
+          </thead>
+          <tbody id="opdelingRijen"></tbody>
+        </table>
       </div>
     </div>
+  </section>
 
-    <label for="rate">Leessnelheid</label>
-    <div class="range-row">
-      <input id="rate" type="range" min="0.5" max="1.5" step="0.05" value="1">
-      <span class="range-value" id="rateValue">1.00×</span>
+  <section class="paneel">
+    <header>Resultaat</header>
+    <div class="inhoud">
+      <audio id="audio" controls></audio>
     </div>
-    <div class="hint">Google Chirp 3 HD ondersteunt 0,25× tot 2,0×. Voor prettig luisteren is 0,8×–1,2× meestal het nuttigst.</div>
+  </section>
 
-    <label for="filename">Naam van MP3-bestand</label>
-    <input id="filename" type="text" value="stemwerk">
+</main>
 
-    <div class="buttons">
-      <button id="speak">▶ Genereren & voorlezen</button>
-      <button id="download" disabled>⬇ Download MP3</button>
-      <button id="split">✂ Toon tekstopdeling</button>
-    </div>
+<script>
+(function(){
+"use strict";
 
-    <div id="status" aria-live="polite"></div>
+const CLOUD_RUN_URL = "https://stemwerk-574603882200.europe-west4.run.app";
 
-    <div class="chunks" id="chunks">
-      <strong>Automatische opdeling</strong>
-      <div id="chunkDetails"></div>
-    </div>
+// Google staat 5000 bytes per aanroep toe. We knippen ruim daaronder,
+// zodat pauzetags en accenten je niet alsnog over de grens duwen.
+const MAX_BYTES = 3800;
+const STANDAARD_KNIPSTILTE = 2000;
 
-    <audio id="audio" controls></audio>
-  </main>
+const CHIRP3_STEMMEN = [
+  "Achernar","Achird","Algenib","Algieba","Alnilam","Aoede",
+  "Autonoe","Callirrhoe","Charon","Despina","Enceladus","Erinome",
+  "Fenrir","Gacrux","Iapetus","Kore","Laomedeia","Leda",
+  "Orus","Pulcherrima","Puck","Rasalgethi","Sadachbia","Sadaltager",
+  "Schedar","Sulafat","Umbriel","Vindemiatrix","Zephyr","Zubenelgenubi"
+];
 
-  <script>
-    const CLOUD_RUN_URL =
-      "https://stemwerk-574603882200.europe-west4.run.app";
+const el = id => document.getElementById(id);
+const tekstEl = el("tekst"), stemEl = el("stem"), tempoEl = el("tempo"),
+      tempoWaardeEl = el("tempoWaarde"), alineapauzeEl = el("alineapauze"),
+      formaatEl = el("formaat"), formaatHintEl = el("formaatHint"),
+      bestandsnaamEl = el("bestandsnaam"), woordenboekEl = el("woordenboek"),
+      maakEl = el("maak"), downloadEl = el("download"),
+      toonOpdelingEl = el("toonOpdeling"), statusEl = el("status"),
+      metaEl = el("meta"), audioEl = el("audio"),
+      opdelingPaneelEl = el("opdelingPaneel"), opdelingRijenEl = el("opdelingRijen"),
+      bevindingenEl = el("bevindingen");
 
-    // Houd bewust ruimte onder Google's limiet van 5000 bytes per request.
-    const TARGET_CHUNK_BYTES = 3800;
+let huidigeBlob = null, huidigeUrl = null, huidigeExtensie = "wav";
 
-    const textEl = document.getElementById("text");
-    const voiceEl = document.getElementById("voice");
-    const pauseEl = document.getElementById("pause");
-    const rateEl = document.getElementById("rate");
-    const rateValueEl = document.getElementById("rateValue");
-    const filenameEl = document.getElementById("filename");
-    const speakButton = document.getElementById("speak");
-    const downloadButton = document.getElementById("download");
-    const splitButton = document.getElementById("split");
-    const audioEl = document.getElementById("audio");
-    const statusEl = document.getElementById("status");
-    const charCountEl = document.getElementById("charCount");
-    const byteCountEl = document.getElementById("byteCount");
-    const durationEl = document.getElementById("duration");
-    const chunkCountEl = document.getElementById("chunkCount");
-    const chunksEl = document.getElementById("chunks");
-    const chunkDetailsEl = document.getElementById("chunkDetails");
+const bytes = s => new TextEncoder().encode(s).length;
 
-    let currentAudioBlob = null;
-    let currentAudioUrl = null;
+function tijd(seconden){
+  seconden = Math.max(0, Math.round(seconden));
+  const m = Math.floor(seconden/60), s = seconden%60;
+  return m + ":" + String(s).padStart(2,"0");
+}
 
-    const utf8Bytes = value => new TextEncoder().encode(value).length;
+/* ---------- Parsen ---------- */
 
-    function formatDuration(seconds) {
-      seconds = Math.max(0, Math.round(seconds));
-      const m = Math.floor(seconds / 60);
-      const s = seconds % 60;
-      return `${m}:${String(s).padStart(2, "0")}`;
-    }
+// De oude notatie [pauze 700] uit eerdere versies kent Chirp 3 niet; zonder
+// omzetting spreekt de stem de blokhaken letterlijk uit.
+function normaliseerPauzes(tekst){
+  return String(tekst).replace(/\[pauze\s+(\d{1,6})\]/gi, (_, ms) => {
+    const n = Number(ms);
+    if (n < 500) return "[pause short]";
+    if (n < 1200) return "[pause]";
+    return "[pause long]";
+  });
+}
 
-    function splitText(text, maxBytes = TARGET_CHUNK_BYTES) {
-      const clean = text.trim();
-      if (!clean) return [];
-      if (utf8Bytes(clean) <= maxBytes) return [clean];
+// Splitst de tekst op [knip N] en geeft blokken met de stilte die erachter hoort.
+function parseerKnippen(tekst){
+  const blokken = [];
+  const patroon = /\[knip(?:\s+(\d{1,6}))?\]/gi;
+  let laatste = 0, m;
 
-      // Eerst alinea's, daarna zinnen, daarna woorden.
-      const paragraphs = clean.split(/\n\s*\n/);
-      const chunks = [];
-      let current = "";
-
-      function pushPiece(piece) {
-        piece = piece.trim();
-        if (!piece) return;
-
-        const candidate = current ? `${current}\n\n${piece}` : piece;
-
-        if (utf8Bytes(candidate) <= maxBytes) {
-          current = candidate;
-          return;
-        }
-
-        if (current) {
-          chunks.push(current);
-          current = "";
-        }
-
-        if (utf8Bytes(piece) <= maxBytes) {
-          current = piece;
-          return;
-        }
-
-        const sentences = piece.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [piece];
-        for (const sentence of sentences) {
-          const s = sentence.trim();
-          const sentenceCandidate = current ? `${current} ${s}` : s;
-
-          if (utf8Bytes(sentenceCandidate) <= maxBytes) {
-            current = sentenceCandidate;
-            continue;
-          }
-
-          if (current) {
-            chunks.push(current);
-            current = "";
-          }
-
-          if (utf8Bytes(s) <= maxBytes) {
-            current = s;
-            continue;
-          }
-
-          const words = s.split(/\s+/);
-          for (const word of words) {
-            const wordCandidate = current ? `${current} ${word}` : word;
-            if (utf8Bytes(wordCandidate) <= maxBytes) {
-              current = wordCandidate;
-            } else {
-              if (current) chunks.push(current);
-              current = word;
-            }
-          }
-        }
-      }
-
-      paragraphs.forEach(pushPiece);
-      if (current) chunks.push(current);
-      return chunks;
-    }
-
-    function estimateSeconds(text) {
-      // Nederlandse vertelstem: ongeveer 150 woorden/min bij 1.0x.
-      const words = text.trim() ? text.trim().split(/\s+/).length : 0;
-      const rate = Number(rateEl.value) || 1;
-      return (words / (150 * rate)) * 60;
-    }
-
-    function updateStats() {
-      const text = textEl.value;
-      const chunks = splitText(text);
-
-      charCountEl.textContent = text.length;
-      byteCountEl.textContent = utf8Bytes(text);
-      chunkCountEl.textContent = Math.max(1, chunks.length);
-      durationEl.textContent = formatDuration(estimateSeconds(text));
-      rateValueEl.textContent = `${Number(rateEl.value).toFixed(2)}×`;
-    }
-
-    function renderChunks() {
-      const chunks = splitText(textEl.value);
-      if (!chunks.length) {
-        chunkDetailsEl.textContent = "Geen tekst.";
-        return;
-      }
-
-      chunkDetailsEl.innerHTML = chunks.map((chunk, i) =>
-        `<div>Fragment ${i + 1}: ${chunk.length} tekens / ${utf8Bytes(chunk)} bytes</div>`
-      ).join("");
-    }
-
-    textEl.addEventListener("input", updateStats);
-    rateEl.addEventListener("input", updateStats);
-
-    splitButton.addEventListener("click", () => {
-      renderChunks();
-      chunksEl.style.display =
-        chunksEl.style.display === "block" ? "none" : "block";
+  while ((m = patroon.exec(tekst)) !== null){
+    blokken.push({
+      tekst: tekst.slice(laatste, m.index).trim(),
+      stilte: m[1] === undefined ? STANDAARD_KNIPSTILTE : Number(m[1])
     });
+    laatste = m.index + m[0].length;
+  }
+  blokken.push({ tekst: tekst.slice(laatste).trim(), stilte: 0 });
 
-    updateStats();
+  return blokken.filter(b => b.tekst.length > 0);
+}
 
-    async function synthesizeChunk(text) {
-      const response = await fetch(`${CLOUD_RUN_URL}/tts`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          text,
-          voice: voiceEl.value,
-          speakingRate: Number(rateEl.value),
-          pause: pauseEl.value
-        })
+// Hakt een woord dat op zichzelf al te groot is af op de bytegrens.
+// Zonder dit loopt een tekst zonder spaties vast.
+function hakOpBytes(woord, maxBytes){
+  const brokken = [];
+  let huidig = "";
+  for (const teken of woord){
+    if (huidig && bytes(huidig + teken) > maxBytes){ brokken.push(huidig); huidig = teken; }
+    else huidig += teken;
+  }
+  if (huidig) brokken.push(huidig);
+  return brokken;
+}
+
+// Byte-bewuste opdeling: eerst alinea's, dan zinnen, dan woorden, dan tekens.
+function splitsTekst(tekst, maxBytes = MAX_BYTES){
+  const schoon = tekst.trim();
+  if (!schoon) return [];
+  if (bytes(schoon) <= maxBytes) return [schoon];
+
+  const stukken = [];
+  let huidig = "";
+
+  const bewaar = () => { if (huidig) { stukken.push(huidig); huidig = ""; } };
+  const past = (deel, scheider) => {
+    const kandidaat = huidig ? huidig + scheider + deel : deel;
+    if (bytes(kandidaat) <= maxBytes){ huidig = kandidaat; return true; }
+    return false;
+  };
+
+  const alineas = schoon.split(/\n\s*\n/).map(a=>a.trim()).filter(Boolean);
+
+  for (const alinea of alineas){
+    if (past(alinea, "\n\n")) continue;
+    bewaar();
+    if (bytes(alinea) <= maxBytes){ huidig = alinea; continue; }
+
+    const zinnen = (alinea.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [alinea])
+      .map(z=>z.trim()).filter(Boolean);
+
+    for (const zin of zinnen){
+      if (past(zin, " ")) continue;
+      bewaar();
+      if (bytes(zin) <= maxBytes){ huidig = zin; continue; }
+
+      for (const woord of zin.split(/\s+/).filter(Boolean)){
+        if (past(woord, " ")) continue;
+        bewaar();
+        if (bytes(woord) <= maxBytes){ huidig = woord; continue; }
+
+        const brokken = hakOpBytes(woord, maxBytes);
+        brokken.forEach((brok, i) => {
+          if (i === brokken.length - 1) huidig = brok;
+          else stukken.push(brok);
+        });
+      }
+    }
+  }
+
+  bewaar();
+  return stukken;
+}
+
+// Zet de tekst om naar de definitieve fragmentenlijst. Een blok dat te groot
+// is wordt onderverdeeld; alleen het laatste deel draagt de knipstilte.
+function bouwFragmenten(tekst){
+  const fragmenten = [];
+  for (const blok of parseerKnippen(normaliseerPauzes(tekst))){
+    const delen = splitsTekst(blok.tekst);
+    delen.forEach((deel, i) => {
+      fragmenten.push({
+        tekst: deel,
+        stilte: i === delen.length - 1 ? blok.stilte : 0
       });
+    });
+  }
+  return fragmenten;
+}
 
-      if (!response.ok) {
-        const message = await response.text();
-        throw new Error(message || `HTTP ${response.status}`);
-      }
+function parseerWoordenboek(ruw){
+  return String(ruw || "").split(/\r?\n/).map(regel => {
+    const i = regel.indexOf("=");
+    if (i < 0) return null;
+    const phrase = regel.slice(0,i).trim();
+    const pronunciation = regel.slice(i+1).trim();
+    if (!phrase || !pronunciation) return null;
+    return { phrase, pronunciation, phoneticEncoding:"PHONETIC_ENCODING_IPA" };
+  }).filter(Boolean);
+}
 
-      return response.arrayBuffer();
+function heeftKnippen(tekst){ return /\[knip(?:\s+\d{1,6})?\]/i.test(tekst); }
+
+/* ---------- Statistiek ---------- */
+
+function schatSeconden(tekst){
+  const kaal = tekst.replace(/\[(?:knip\s*\d*|pause(?:\s+short|\s+long)?)\]/gi," ").trim();
+  const woorden = kaal ? kaal.split(/\s+/).length : 0;
+  const tempo = Number(tempoEl.value) || 1;
+  return (woorden / (150*tempo)) * 60;
+}
+
+function ververs(){
+  const tekst = tekstEl.value;
+  const fragmenten = bouwFragmenten(tekst);
+  const stilteMs = fragmenten.reduce((a,f)=>a+f.stilte,0);
+
+  tempoWaardeEl.textContent = Number(tempoEl.value).toFixed(2).replace(".",",") + "\u00d7";
+
+  metaEl.innerHTML = "";
+  const pillen = [
+    [tekst.length + " tekens", ""],
+    [bytes(tekst) + " bytes", ""],
+    ["\u00b1 " + tijd(schatSeconden(tekst) + stilteMs/1000) + " spreektijd", ""],
+    [Math.max(1,fragmenten.length) + " fragment" + (fragmenten.length===1?"":"en"), "info"]
+  ];
+  if (stilteMs > 0) pillen.push([(stilteMs/1000).toFixed(1).replace(".",",") + " s ingevoegde stilte","goed"]);
+
+  for (const [tekstje, soort] of pillen){
+    const s = document.createElement("span");
+    s.className = "pil" + (soort ? " " + soort : "");
+    s.textContent = tekstje;
+    metaEl.appendChild(s);
+  }
+
+  const knip = heeftKnippen(tekst);
+  if (knip && formaatEl.value === "MP3"){
+    formaatHintEl.innerHTML = "<strong>Knippen vragen om WAV.</strong> In MP3 kunnen de fragmenten alleen achter elkaar geplakt worden, zonder exacte stilte. Er wordt WAV gebruikt.";
+  } else if (formaatEl.value === "WAV"){
+    formaatHintEl.textContent = "Fragmenten worden in de browser gedecodeerd en samengevoegd tot \u00e9\u00e9n WAV. Reken op ongeveer 2,8 MB per minuut.";
+  } else {
+    formaatHintEl.textContent = "Fragmenten worden achter elkaar geplakt. Compact, maar de speelduur kan in sommige spelers verkeerd worden weergegeven.";
+  }
+}
+
+function toonOpdeling(){
+  const fragmenten = bouwFragmenten(tekstEl.value);
+  opdelingRijenEl.innerHTML = "";
+
+  fragmenten.forEach((f,i)=>{
+    const tr = document.createElement("tr");
+    const begin = f.tekst.replace(/\s+/g," ").slice(0,64) + (f.tekst.length>64?"\u2026":"");
+    tr.innerHTML =
+      "<td class=\"num\">" + (i+1) + "</td>" +
+      "<td></td>" +
+      "<td class=\"r num\">" + f.tekst.length + "</td>" +
+      "<td class=\"r num\">" + bytes(f.tekst) + "</td>" +
+      "<td class=\"r num\">" + (f.stilte ? f.stilte + " ms" : "\u2014") + "</td>";
+    tr.children[1].textContent = begin;
+    opdelingRijenEl.appendChild(tr);
+  });
+
+  bevindingenEl.innerHTML = "";
+  const teGroot = fragmenten.filter(f => bytes(f.tekst) > MAX_BYTES).length;
+  const seconden = schatSeconden(tekstEl.value) + fragmenten.reduce((a,f)=>a+f.stilte,0)/1000;
+  const mb = (seconden * 24000 * 2) / (1024*1024);
+
+  if (teGroot) meldBevinding("kritiek", teGroot + " fragment(en) blijven boven de bytegrens. Voeg een [knip] toe binnen die alinea.");
+  if (mb > 250) meldBevinding("aandacht", "Het WAV-bestand wordt ongeveer " + Math.round(mb) + " MB. Dat past nog in het geheugen, maar splits gerust in twee delen als de browser hapert.");
+  if (!fragmenten.length) meldBevinding("info", "Nog geen tekst om op te delen.");
+}
+
+function meldBevinding(status, tekst){
+  const d = document.createElement("div");
+  d.className = "bevinding"; d.setAttribute("data-status", status);
+  const merk = document.createElement("div"); merk.className = "merk";
+  const p = document.createElement("div"); p.textContent = tekst;
+  d.appendChild(merk); d.appendChild(p);
+  bevindingenEl.appendChild(d);
+}
+
+function meldStatus(tekst, soort){
+  statusEl.textContent = tekst;
+  if (soort) statusEl.setAttribute("data-soort", soort);
+  else statusEl.removeAttribute("data-soort");
+}
+
+/* ---------- Audio ---------- */
+
+async function synthetiseer(tekst, formaat, woordenboek){
+  const antwoord = await fetch(CLOUD_RUN_URL + "/tts", {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({
+      text: tekst,
+      voice: stemEl.value,
+      speakingRate: Number(tempoEl.value),
+      pause: alineapauzeEl.value,
+      encoding: formaat === "WAV" ? "LINEAR16" : "MP3",
+      customPronunciations: woordenboek
+    })
+  });
+
+  if (!antwoord.ok){
+    const bericht = await antwoord.text();
+    throw new Error(bericht || ("HTTP " + antwoord.status));
+  }
+  return antwoord.arrayBuffer();
+}
+
+function naarInt16(audioBuffer){
+  // Chirp 3 levert mono; bij meer kanalen nemen we het eerste.
+  const kanaal = audioBuffer.getChannelData(0);
+  const uit = new Int16Array(kanaal.length);
+  for (let i=0;i<kanaal.length;i++){
+    const v = Math.max(-1, Math.min(1, kanaal[i]));
+    uit[i] = v < 0 ? v*0x8000 : v*0x7FFF;
+  }
+  return uit;
+}
+
+function bouwWav(delen, sampleRate){
+  let totaal = 0;
+  for (const d of delen) totaal += d.length;
+
+  const buffer = new ArrayBuffer(44 + totaal*2);
+  const view = new DataView(buffer);
+  const schrijf = (pos,s)=>{ for(let i=0;i<s.length;i++) view.setUint8(pos+i, s.charCodeAt(i)); };
+
+  schrijf(0,"RIFF");  view.setUint32(4, 36+totaal*2, true);
+  schrijf(8,"WAVE");  schrijf(12,"fmt ");
+  view.setUint32(16,16,true); view.setUint16(20,1,true); view.setUint16(22,1,true);
+  view.setUint32(24,sampleRate,true); view.setUint32(28,sampleRate*2,true);
+  view.setUint16(32,2,true); view.setUint16(34,16,true);
+  schrijf(36,"data"); view.setUint32(40, totaal*2, true);
+
+  const doel = new Int16Array(buffer, 44);
+  let offset = 0;
+  for (let i=0;i<delen.length;i++){
+    doel.set(delen[i], offset);
+    offset += delen[i].length;
+    delen[i] = null; // geheugen vrijgeven tijdens het schrijven
+  }
+  return new Blob([buffer], {type:"audio/wav"});
+}
+
+maakEl.addEventListener("click", async ()=>{
+  const tekst = tekstEl.value.trim();
+  if (!tekst){ meldStatus("Zet er eerst tekst in.", "fout"); return; }
+
+  const fragmenten = bouwFragmenten(tekst);
+  const woordenboek = parseerWoordenboek(woordenboekEl.value);
+  const wilKnippen = heeftKnippen(tekst);
+  const formaat = (wilKnippen || formaatEl.value === "WAV") ? "WAV" : "MP3";
+  huidigeExtensie = formaat === "WAV" ? "wav" : "mp3";
+
+  maakEl.disabled = true; downloadEl.disabled = true; huidigeBlob = null;
+
+  try{
+    const delen = [];
+    let sampleRate = 24000;
+    let ctx = null;
+
+    if (formaat === "WAV"){
+      ctx = new (window.AudioContext || window.webkitAudioContext)();
     }
 
-    speakButton.addEventListener("click", async () => {
-      const text = textEl.value.trim();
+    for (let i=0;i<fragmenten.length;i++){
+      meldStatus("Fragment " + (i+1) + " van " + fragmenten.length + " maken\u2026");
+      const rauw = await synthetiseer(fragmenten[i].tekst, formaat, woordenboek);
 
-      if (!text) {
-        statusEl.textContent = "Voer eerst tekst in.";
-        return;
-      }
+      if (formaat === "WAV"){
+        const gedecodeerd = await ctx.decodeAudioData(rauw.slice(0));
+        sampleRate = gedecodeerd.sampleRate;
+        delen.push(naarInt16(gedecodeerd));
 
-      const chunks = splitText(text);
-      speakButton.disabled = true;
-      downloadButton.disabled = true;
-      currentAudioBlob = null;
-      statusEl.textContent =
-        chunks.length === 1
-          ? "Audio wordt gemaakt…"
-          : `Lange tekst: ${chunks.length} fragmenten worden gemaakt…`;
-
-      try {
-        const audioParts = [];
-
-        for (let i = 0; i < chunks.length; i++) {
-          statusEl.textContent =
-            `Audio maken: fragment ${i + 1} van ${chunks.length}…`;
-          audioParts.push(await synthesizeChunk(chunks[i]));
+        if (fragmenten[i].stilte > 0){
+          delen.push(new Int16Array(Math.round(sampleRate * fragmenten[i].stilte / 1000)));
         }
-
-        // MP3 bestaat uit opeenvolgende frames; voor deze toepassing worden
-        // de gegenereerde MP3-segmenten achter elkaar aangeboden als één bestand.
-        currentAudioBlob = new Blob(audioParts, { type: "audio/mpeg" });
-
-        if (currentAudioUrl) URL.revokeObjectURL(currentAudioUrl);
-        currentAudioUrl = URL.createObjectURL(currentAudioBlob);
-
-        audioEl.src = currentAudioUrl;
-        downloadButton.disabled = false;
-        statusEl.textContent =
-          `Klaar — ${chunks.length} fragment${chunks.length === 1 ? "" : "en"}.`;
-
-        await audioEl.play();
-      } catch (error) {
-        console.error(error);
-        statusEl.textContent = "Fout: " + error.message;
-      } finally {
-        speakButton.disabled = false;
+      } else {
+        delen.push(rauw);
       }
-    });
+    }
 
-    downloadButton.addEventListener("click", () => {
-      if (!currentAudioBlob) return;
+    if (formaat === "WAV"){
+      meldStatus("Fragmenten samenvoegen\u2026");
+      huidigeBlob = bouwWav(delen, sampleRate);
+      if (ctx && ctx.close) ctx.close();
+    } else {
+      huidigeBlob = new Blob(delen, {type:"audio/mpeg"});
+    }
 
-      let filename = filenameEl.value.trim() || "stemwerk";
-      filename = filename
-        .replace(/\.mp3$/i, "")
-        .replace(/[\/\\:*?"<>|]/g, "-");
+    if (huidigeUrl) URL.revokeObjectURL(huidigeUrl);
+    huidigeUrl = URL.createObjectURL(huidigeBlob);
+    audioEl.src = huidigeUrl;
+    downloadEl.disabled = false;
 
-      const date = new Date();
-      const dateString =
-        String(date.getDate()).padStart(2, "0") + "-" +
-        String(date.getMonth() + 1).padStart(2, "0") + "-" +
-        date.getFullYear();
+    const mb = (huidigeBlob.size/(1024*1024)).toFixed(1).replace(".",",");
+    meldStatus("Klaar \u2014 " + fragmenten.length + " fragment" + (fragmenten.length===1?"":"en") + ", " + mb + " MB.", "klaar");
 
-      const voiceName = voiceEl.options[voiceEl.selectedIndex].text;
-      const url = URL.createObjectURL(currentAudioBlob);
-      const link = document.createElement("a");
+    // Na een reeks netwerkaanroepen is de gebruikersactivatie verlopen en
+    // weigert de browser autoplay. Dat is geen fout; de speler staat klaar.
+    try{
+      await audioEl.play();
+    }catch(e){
+      meldStatus("Klaar \u2014 " + fragmenten.length + " fragment" + (fragmenten.length===1?"":"en") + ", " + mb + " MB. Druk op afspelen.", "klaar");
+    }
 
-      link.href = url;
-      link.download = `${filename}_${voiceName}_${dateString}.mp3`;
+  }catch(fout){
+    console.error(fout);
+    meldStatus("Het maken is gestopt: " + fout.message, "fout");
+  }finally{
+    maakEl.disabled = false;
+  }
+});
 
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
+downloadEl.addEventListener("click", ()=>{
+  if (!huidigeBlob) return;
 
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
-    });
+  let naam = (bestandsnaamEl.value.trim() || "stemwerk")
+    .replace(/\.(wav|mp3)$/i,"")
+    .replace(/[\/\\:*?"<>|]/g,"-");
 
-    window.addEventListener("beforeunload", () => {
-      if (currentAudioUrl) URL.revokeObjectURL(currentAudioUrl);
-    });
-  </script>
+  const d = new Date();
+  const datum = String(d.getDate()).padStart(2,"0") + "-" +
+                String(d.getMonth()+1).padStart(2,"0") + "-" + d.getFullYear();
+  const stemNaam = stemEl.options[stemEl.selectedIndex].text;
+
+  const url = URL.createObjectURL(huidigeBlob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = naam + "_" + stemNaam + "_" + datum + "." + huidigeExtensie;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 1000);
+});
+
+toonOpdelingEl.addEventListener("click", ()=>{
+  const verborgen = opdelingPaneelEl.classList.contains("verborgen");
+  if (verborgen) toonOpdeling();
+  opdelingPaneelEl.classList.toggle("verborgen");
+  toonOpdelingEl.textContent = verborgen ? "Opdeling verbergen" : "Opdeling tonen";
+});
+
+/* ---------- Start ---------- */
+
+CHIRP3_STEMMEN.forEach(naam=>{
+  const o = document.createElement("option");
+  o.value = "nl-NL-Chirp3-HD-" + naam;
+  o.textContent = naam;
+  stemEl.appendChild(o);
+});
+stemEl.value = "nl-NL-Chirp3-HD-Charon";
+
+try{
+  const bewaard = localStorage.getItem("stemwerk-woordenboek");
+  if (bewaard) woordenboekEl.value = bewaard;
+}catch(e){ /* opslag geblokkeerd; niet erg */ }
+
+woordenboekEl.addEventListener("input", ()=>{
+  try{ localStorage.setItem("stemwerk-woordenboek", woordenboekEl.value); }catch(e){}
+});
+
+["input","change"].forEach(ev=>{
+  tekstEl.addEventListener(ev, ververs);
+  tempoEl.addEventListener(ev, ververs);
+  formaatEl.addEventListener(ev, ververs);
+});
+
+window.addEventListener("beforeunload", ()=>{
+  if (huidigeUrl) URL.revokeObjectURL(huidigeUrl);
+});
+
+ververs();
+
+// Voor de testsuite.
+window.__stemwerk = {
+  parseerKnippen, splitsTekst, bouwFragmenten, normaliseerPauzes,
+  parseerWoordenboek, heeftKnippen, bouwWav, bytes, MAX_BYTES
+};
+
+})();
+</script>
 </body>
 </html>
